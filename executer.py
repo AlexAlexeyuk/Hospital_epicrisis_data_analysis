@@ -91,38 +91,47 @@ def diagnosis_dirty(file_):
 
 def crp(file_):
   """returns all crp values"""
-  pattern = re.sub(r'[ЦСC]РБ', 'С-реактивныйбелок', file_)
-  pattern_1 = re.compile(r'(?:\w\Dреактивныйбелок|\w\Dреактивныйбелокдо)\
-                         (\d*.\d+|\d+)')
-  pattern_2 = pattern_1.findall(''.join(pattern.split()))
+  file_= ''.join(file_.split())
+  file_ = re.sub(r'[ЦСC]РБ|\w\D(реактив.|реакт.|реак.)белок', 'С-реактивныйбелок', file_)
+  file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
+  file_ = re.sub(r'[():]', '', file_)
+  file_ = re.sub(r'(?<!С-реактивныйбелок)\d\d\.\d\d', '', file_)
+  file_ = re.sub(r',', '.', file_)
+  pattern_1 = re.compile(r'(?:\w\Dреактивныйбелок|\w\Dреактивныйбелокдо)(\d*\.\d+|\d+)')
+  pattern_2 = pattern_1.findall(file_)
   try:
-    return pattern_2
+    if pattern_2:
+      return pattern_2
+    else:
+      return 'None'
   except:
-    return 'None'
+    pass
 
 
 def gender(file_):
   file_ = file_.title()
   file_ = ''.join(file_.split())
   file_ = re.sub(r'Диагноз.*', '', file_)
-  patt1 = re.compile(r'(?<=Ф.И.О:)[А-Я]\w{,20}[А-Я]\w{,20}(вич)')
+  patt1 = re.compile(r'[А-Я](\w{,19}(\w|\ич))[А-Я]\w{,20}(вна)')
   patt2 = patt1.findall(file_)
   try:
     if patt2:
-      return 'male'
-    else:
       return 'female'
+    else:
+      return 'male'
   except:
-      pass
+    pass
   
 
 def ldh(file_):
+  file_= ''.join(file_.split())
   file_ = file_.lower()
   file_ = re.sub(r'[():]', '', file_)
-  file_ = re.sub(r'\d\d\.\d\d\.\d{2,4}', '', file_)
+  file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
   file_ = re.sub(r'\wактатдегидрогеназ\w', 'лдг', file_)
+  file_ = re.sub(r'(?<!лдг)\d\d\.\d\d', '', file_)
   patt1 = re.compile(r'(?<=лдг)\d{,4}')
-  patt2 = patt1.findall(''.join(file_.split()))
+  patt2 = patt1.findall(file_)
   try:
     if patt2:
       return patt2
@@ -135,12 +144,14 @@ def ldh(file_):
 
 def cre(file_):
   """Returns all creatinine values"""
+  file_= ''.join(file_.split())  
   file_ = file_.lower()
   file_ = re.sub(r'[():]', '', file_)
-  file_ = re.sub(r'\d\d\.\d\d\.\d{2,4}', '', file_)
+  file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
   file_ = re.sub(r'(\wреатини\w|креатин|креат)(?![а-яА-Я,])', 'cre', file_)
-  patt1 = re.compile(r'(?<=cre)\d{,3}')
-  patt2 = patt1.findall(''.join(file_.split()))
+  file_ = re.sub(r'(?<!cre)\d\d\.\d\d', '', file_)
+  patt1 = re.compile(r'(?<=cre)\d{2,3}')
+  patt2 = patt1.findall(file_)
   try:
     if patt2:
       return patt2
@@ -152,12 +163,13 @@ def cre(file_):
 
 def hgb(file_):
   """returns list of str with level of hemoglobin"""
+  file_= ''.join(file_.split())  
   file_ = file_.lower()
   file_ = re.sub(r'[():]', '', file_)
   patt = re.compile(r'гемоглобин|гемогл|гб|гем')
   patt1 = re.sub(patt, r'hgb', file_)
   patt2 = re.compile(r'(?<=hgb)\d{2,3}')
-  all_hgb = patt2.findall(''.join(patt1.split()))
+  all_hgb = patt2.findall(patt1)
   try:
     if all_hgb:
       return all_hgb
@@ -169,13 +181,16 @@ def hgb(file_):
 
 def wbc(file_):
   """returns list of str with level of wbc"""
+  file_= ''.join(file_.split())
   file_ = file_.lower()
-  patt1 = re.sub(r'[():]', '', file_)
-  patt1 = re.sub(r'10(\*|[еe])9', '', patt1)
-  patt1 = re.sub(r'\Dбщийанализкрови', 'оак', patt1) 
-  patt2 = re.sub(r'(?<=оак)\d\d.\d\d.\d{2,4}|(?<=оак)\d\d.\d\d', '', patt1)
-  patt3 = re.compile(r'(?<=оак|wbc)(?:л|лейкоцит\w)(\d*.\d+|\d+)')
-  all_wbc = patt3.findall(''.join(patt2.split()))
+  file_ = re.sub(r'[():]', '', file_)
+  file_ = re.sub(r'10(\*|[еe])9', '', file_)
+  file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
+  file_ = re.sub(r'\Dбщийанализкрови', 'оак', file_)
+  file_ = re.sub(r'(?<=оак)гб\d*,', '', file_)
+  file_ = re.sub(r',', '.', file_)
+  patt1 = re.compile(r'(?<=оак|wbc)(?:л|лейкоцит\w)(\d*\.\d+|\d+)')
+  all_wbc = patt1.findall(file_)
   try:
     if all_wbc:
       return all_wbc
@@ -187,14 +202,16 @@ def wbc(file_):
 
 def plt(file_):
   """returns list of str with level of plt"""
+  file_= ''.join(file_.split())
   file_ = file_.lower()
   file_ = re.sub(r'[():]', '', file_)
   file_ = re.sub(r'10(\*|[еe])9', '', file_)
-  patt2 = re.compile(r'(?:\wромбоцит\w|тр)')
-  patt1 = re.sub(patt2, '', file_)
-  patt1 = ''.join(patt1.split())
+  file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
+  patt1 = re.compile(r'\wромбоцит\w|(?<![а-яА-Я])тр(?![а-яА-Я])')
+  file_ = re.sub(patt1, r'plt', file_)
+  file_ = re.sub(r'(?<!plt)\d\d\.\d\d', '', file_)
   patt2 = re.compile(r'(?<=plt)\d{3}')
-  all_plt = patt2.findall(patt1)
+  all_plt = patt2.findall(file_)
   try:
     if all_plt:
       return all_plt
@@ -225,8 +242,9 @@ def alt(file_):
   file_ = file_.lower()
   file_ = re.sub(r'[():]', '', file_)
   file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
-  file_ = re.sub(r',', '.', file_)
   file_ = re.sub(r'\wланинаминотрансфераз\w|алат', 'алт', file_)
+  file_ = re.sub(r'(?<!алт)\d\d\.\d\d', '', file_)
+  file_ = re.sub(r',', '.', file_) 
   patt1 = re.compile(r'(?<=алт)(\d*\.\d+|\d+)')
   patt2 = patt1.findall(file_)
   try:
@@ -243,8 +261,9 @@ def ast(file_):
   file_ = file_.lower()
   file_ = re.sub(r'[():]', '', file_)
   file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
-  file_ = re.sub(r',', '.', file_)
   file_ = re.sub(r'\wспартатаминотрансфераз\w|асат', 'аст', file_)
+  file_ = re.sub(r'(?<!аст)\d\d\.\d\d', '', file_)
+  file_ = re.sub(r',', '.', file_)
   patt1 = re.compile(r'(?<=аст)(\d*\.\d+|\d+)')
   patt2 = patt1.findall(file_)
   try:
@@ -259,10 +278,13 @@ def ast(file_):
 def pct(file_):
   file_= ''.join(file_.split())
   file_ = file_.lower()
-  file_ = re.sub(r'[–-]|[():<>]', '', file_)
-  file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}', '', file_)
+  file_ = re.sub(r'(?<=\,\d)\,|\.\d{2}\.\d\d\.\d{2,4}.', '', file_)
+  file_ = re.sub(r'\d{,2}\.\d\d\.\d{2,4}(\.|)', '', file_)
+  file_ = re.sub(r'[–-]|[():<>=]', '', file_)
+  file_ = re.sub(r'менее', '', file_)
+  file_ = re.sub(r'от', '', file_)
+  file_ = re.sub(r'(\wрокальцитони\w|прокальцитон|прокальцит|прокальц|рст)(?![а-яА-Я,])', 'pct', file_)
   file_ = re.sub(r',', '.', file_)
-  file_ = re.sub(r'(\wрокальцитони\w|прокальцитон|прокальцит|прокальц)(?![а-яА-Я,])', 'pct', file_)
   patt1 = re.compile(r'(?<=pct)(\d*\.\d+|\d+)')
   patt2 = patt1.findall(file_)
   try:
@@ -286,8 +308,8 @@ for file in list_of_files:
                 ad.append(born_adm_disch(file_)[1])
                 dis.append(born_adm_disch(file_)[2])
                 dgs_.append(diagnosis_dirty((file_)))
-                crp_.append(crp(''.join(file_.split())))
-                sex_.append(gender(''.join(file_.split())))
+                crp_.append(crp(file_))
+                sex_.append(gender(file_))
                 ldh_.append(ldh(file_))
                 crea_.append(cre(file_))
                 hgb_.append(hgb(file_))
@@ -299,12 +321,6 @@ for file in list_of_files:
                 pct_.append(pct(file_))
     except:
         print('stp')
-
-
-for i in pct_:
-    if i != "None":
-        print(i)
-        
         
 
 rfl = []
@@ -410,4 +426,4 @@ dataFrame = pd.DataFrame(data_dct)
 
 dataFrame.head(5)
 
-
+dataFrame.to_csv('Data7.csv')
